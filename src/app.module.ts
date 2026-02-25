@@ -32,7 +32,26 @@ import { ConfigModule as ValidationConfigModule } from "./validation/config.modu
 
 @Module({
   imports: [
-    ValidationConfigModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ".env",
+    }),
+    TypeOrmModule.forRoot({
+      type: "postgres",
+      url:
+        process.env.DATABASE_URL ||
+        "postgresql://stellaiverse:password@localhost:5432/stellaiverse",
+      entities: [
+        User,
+        EmailVerification,
+        SignedPayload,
+        SubmissionNonce,
+        AgentEvent,
+        ComputeResult,
+      ],
+      synchronize: process.env.NODE_ENV !== "production", // Auto-sync in development
+      logging: process.env.NODE_ENV === "development",
+    }),
     // Rate Limiting - Global protection against brute force and DoS
     ThrottlerModule.forRoot({
       throttlers: [
@@ -51,10 +70,13 @@ import { ConfigModule as ValidationConfigModule } from "./validation/config.modu
 
         return {
           type: "postgres",
-          url: configService.get("DATABASE_URL") || "postgresql://stellaiverse:password@localhost:5432/stellaiverse",
-          entities: [User, EmailVerification, SignedPayload, SubmissionNonce, AgentEvent, OracleSubmission, ComputeResult],
-          synchronize: !isProduction, // Auto-sync in development only
-          logging: configService.get("NODE_ENV") === "development",
+          url: configService.get("DATABASE_URL"),
+          entities: [User, EmailVerification, AgentEvent, ComputeResult],
+          synchronize: false, // NEVER use synchronize in production
+          logging:
+            configService.get("NODE_ENV") === "development"
+              ? ["error", "warn", "schema"]
+              : ["error"],
           ssl: isProduction ? { rejectUnauthorized: false } : false,
           extra: {
             max: 20, // Maximum pool size
