@@ -1,18 +1,18 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ReferralController } from './referral.controller';
-import { ReferralService } from './referral.service';
-import { ReferralAuditService } from './referral-audit.service';
-import { Referral } from './entities/referral.entity';
-import { UserModule } from '../user/user.module';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { ReferralReward } from "./reward.entity";
+import { User } from "../user/entities/user.entity";
+import { RewardService } from "./reward.service";
+import { RewardController } from "./reward.controller";
+import { AuditModule } from "../audit/audit.module";
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Referral]),
-    UserModule,
+    TypeOrmModule.forFeature([ReferralReward, User]),
+    AuditModule,
   ],
-  controllers: [ReferralController],
-  providers: [ReferralService, ReferralAuditService],
-  exports: [ReferralService, ReferralAuditService],
+  controllers: [RewardController],
+  providers: [RewardService],
+  exports: [RewardService],
 })
 export class ReferralModule {}
